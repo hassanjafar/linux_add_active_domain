@@ -1,0 +1,32 @@
+---
+- name: create user and add it to the sudoers
+  hosts: all
+  vars:
+    password: ansible
+    user: ansible
+  tasks:
+  - name: create user
+    user:
+     name: "{{user}}"
+     groups: wheel
+     append: yes
+     state: present
+  - name: set password for {{ user }}
+    shell: echo "{{password}}" | passwd --stdin "{{user}}"
+  - name: add it to the sudeors
+    lineinfile:
+      dest: /etc/sudoers
+      line:  "%{{user}} ALL=(ALL) NOPASSWD: ALL"
+      insertafter: "#includedir /etc/sudoers.d"
+  - name: create the local user, including SSH key
+    user:
+      name: "{{ user }}"
+      generate_ssh_key: true
+      ssh_key_comment: "{{ user }}@{{ansible_fqdn }}"
+      ssh_key_file: /tmp/id_ssh_rsa
+    register: key
+  - name: display key
+    debug:
+      var: key.ssh_public_key
+
+

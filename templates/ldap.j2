@@ -1,0 +1,4 @@
+#!/bin/bash
+q="$(echo $1 | cut -d'@' -f 1)"
+num="$(ldapsearch -h {{ad_domain}} -x -w '{{bind_password}}' -D "{{username}}@{{ad_domain}}" -b "dc={{dc}},dc={{dc1}},dc={{dc2}}" "sAMAccountName=$q" -s sub "objectclass=*" userParameters -LLL -o ldif-wrap=no | grep ssh-rsa | cut -d':' -f 2)"
+echo $num

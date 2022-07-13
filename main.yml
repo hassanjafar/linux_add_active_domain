@@ -1,0 +1,96 @@
+---
+- name: add linux machine to active directory domain
+  hosts: all
+ 
+  vars_files: vars/commons
+  tasks:
+  - name: add lines to /etc/resolve
+    blockinfile:
+      path: /etc/resolv.conf
+      block: |
+        {{domain_primary_ip}}
+        {{domain_secondary_ip}}
+        {{default_domain}}
+      state: present
+
+  - name: add lines to /etc/hosts
+    blockinfile:
+      path: /etc/hosts
+      block: |
+       {{domain_name_1}}
+       {{domain_name_2}}
+      state: present 
+  - name: install required packages
+    yum:
+      name: sssd, realmd, oddjob, oddjob-mkhomedir, adcli, samba-common, samba-common-tools, krb5-workstation, openldap-clients, policycoreutils-python,
+            openldap-clients
+      state: present
+  - name: join machine to AD 
+    shell:  echo '{{bind_password }}' | realm join --user={{username}} {{AD_Domain}}
+  - name: generate /etc/sssd/sssd.conf 
+    template: 
+      src: templates/sssd.j2
+      dest:  /etc/sssd/sssd.conf
+  - name: generate /opt/ldap.js
+    template:
+      src: templates/ldap.j2
+      dest: /opt/ldap.sh
+      mode: a+x
+  - name: Edit the file /etc/ssh/sshd_config
+    lineinfile: 
+      dest:  /etc/ssh/sshd_config
+      regexp: "#AuthorizedKeysCommand none"
+      line: "AuthorizedKeysCommand /opt/ldap.sh" 
+  - name: Edit the file /etc/ssh/sshd_config
+    lineinfile:
+      dest:  /etc/ssh/sshd_config
+      regexp: "AuthorizedKeysCommandUser nobody"
+      line: "AuthorizedKeysCommandUser nobody"
+   # notify: restart sshd
+
+  - name: Edit the file /etc/ssh/ssh_config and add following
+    blockinfile: 
+     dest:  /etc/ssh/ssh_config
+     block: |
+         GlobalKnownHostsFile /var/lib/sss/pubconf/known_hosts
+         ProxyCommand /usr/bin/sss_ssh_knownhostsproxy -p %p %h  
+  
+ # - name: display vars values
+  #  debug:
+   #   var: "{{ item }}"
+    #notify: restart sssd
+  - name: restart ssh services  
+    shell: systemctl restart sshd  
+  - name: restart sssd services
+    shell: systemctl restart sssd
+  
+  - name: create directory etc/sudoers.d
+    file:
+      path: /etc/sudoers.d
+      state: directory
+
+  - name: add it to the sudeors
+    lineinfile: 
+      dest: /etc/sudoers
+      line:  "%sudoers ALL=(ALL) NOPASSWD: ALL"
+      insertafter: "#includedir /etc/sudoers.d"
+      state: present
+  - name: generate /etc/sudoers.d/
+    template:
+      src: templates/sudoer.j2
+      dest: /etc/sudoers.d/sudoers 
+  
+  - name: restart sshd
+    debug:
+      msg: "hello do you see"
+         
+# service:
+    #  name: sshd
+     # state: restarted  
+ # handlers: 
+ # - name: restart sssd
+ #   service:
+  #    name: sssd
+  #    state: restarted
+# tasks file for linux_add_active_domain
+#

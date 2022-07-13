@@ -1,0 +1,5 @@
+---
+- name: adding linux servers to active directory domain
+  hosts: ansible1
+  roles: 
+  - linux_add_active_domain 

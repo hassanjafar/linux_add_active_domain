@@ -1,0 +1,16 @@
+---
+- name: add linux machine to active directory domain
+  hosts: ansible1
+  vars_files: vars/commons
+  tasks:
+  - name: add lines to /etc/resolve
+    blockinfile:
+      path: /etc/resolv.conf
+      block: |
+        "{{domain_primary_ip}}"
+        "{{domain_secondary_ip}}"
+      state: present
+  - name: show variable content  
+    debug: 
+      var: "{{domain_primary_ip}}"
+# tasks file for linux_add_active_domain

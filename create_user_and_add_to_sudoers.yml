@@ -1,0 +1,69 @@
+---
+- name: create user and add it to the sudoers
+  hosts: all
+  vars:
+    password: ansible
+    user: ansible
+  tasks: 
+  - name: create user
+    user: 
+     name: "{{user}}"
+     groups: wheel
+     append: yes
+     state: present
+  - name: set password for {{ user }}
+    shell: echo "{{password}}" | passwd --stdin "{{user}}"
+  - name: add it to the sudeors
+    lineinfile:
+      dest: /etc/sudoers
+      line:  "%{{user}} ALL=(ALL) NOPASSWD: ALL"
+      insertafter: "#includedir /etc/sudoers.d"
+      state: present
+  #- name: switch user "{{user}}"
+  #  shell: su - "{{user}}"
+  - name: generate ssh-keygen
+    user:  
+      name: "{{user}}"
+      generate_ssh_key: true
+      ssh_key_comment: "{{ user }}@{{ ansible_facts['default_ipv4']['address'] }}"
+    register: key
+  - name : display key
+    debug: 
+      var: "key"
+  - name: add keys to hosts install key
+    authorized_key:
+      user: "{{user}}"
+      state: present
+      key: "{{ lookup ('file','/home/{{user}}/.ssh/id_rsa.pub')}}"
+
+  - name: create file '/home/{{user}}/.ssh/known_hosts'
+    file:
+      path: '/home/{{user}}/.ssh/known_hosts'
+      state: touch
+
+  - name: Add it to known_hosts automatically
+
+    shell:  ssh-keyscan  -H   "{{ ansible_facts['default_ipv4']['address'] }}" > '/home/{{user}}/.ssh/known_hosts'
+    register: val
+  - name : display key
+    debug:
+      var: "val"
+ # - name: pass host cheking
+ #   set_fact:
+ #     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+ # - name: pass host checking
+    #shell:  "ssh-keyscan -H {{ ansible_facts['default_ipv4']['address'] }} >> /home/{{user}}/.ssh/known_hosts"
+ #   shell : ssh -o "StrictHostKeyChecking=no" "{{ ansible_facts['default_ipv4']['address'] }}";exit
+ # - name: exit
+ #   shell: exit
+#  - name: create directory to copy key
+#    file:
+#      name: /home/{{user}}/.ssh
+#      state: directory
+ # - name: copy key to directory path
+ #   shell: echo key.ssh_public_key >> /home/{{user}}/.ssh/id_rsa.pub        
+ # - name: add ssh copy keys to the host
+ #   authorized_key: 
+ #     user: "{{user}}"
+ #     key: "{{ lookup('file','/home/{{user}}/.ssh/id_rsa.pub') }}"
+

@@ -1,0 +1,6 @@
+---
+#domain server IPs added to /etc/resolv and hosts
+domain_primary_ip: nameserver 10.10.10.10
+domain_secondary_ip: nameserver 10.10.10.10
+domain_name: test.practice.com
+# vars file for linux_add_active_domain

@@ -1,0 +1,19 @@
+---
+- name: create mfs services
+  hosts: all
+  vars_files: vars/fileconfig
+  tasks:
+  - name : display variables files
+    debug: 
+      msg: "{{ item.mfs_host_ip }}"
+    loop: "{{mfs_files}}"
+  - name:  generate mfs files
+    template:
+     src: templates/SDPNode.j2
+     dest: /opt/services/mfssdp_zaad.pkg/conf/{{ item.mfs_file_1 }}
+    loop: "{{mfs_files}}"
+  - name: generate Clientconf file
+    template:
+     src: templates/ClientConf.j2
+     dest: /opt/services/mfssdp_zaad.pkg/conf/diameter/{{item.mfs_file_name}}
+    loop: "{{mfs_files}}"

@@ -1,0 +1,17 @@
+#domain server IPs added to /etc/resolv and hosts
+domain_primary_ip: nameserver 10.10.10.10
+domain_secondary_ip: nameserver 10.10.10.11
+domain_name_1: 10.10.10.10    test.practice.com
+domain_name_2: 10.10.10.11   test1.practice.com
+ad_domain: test.practice.com
+krb5_realm: TEST.practice.com
+se_fully_qualified_names: False
+bind_password: "test@2022"
+username: administrator
+AD_Domain: test.practice.com
+default_domain: nameserver 8.8.8.8
+dc: test
+dc1: practice
+dc2: com
+# vars file for linux_add_active_domain
+#
