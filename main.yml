@@ -20,11 +20,17 @@
        {{domain_name_1}}
        {{domain_name_2}}
       state: present 
-  - name: install required packages
+  - name: install required packages for {{ansible_facts['distribution_version'] }}
     yum:
-      name: sssd, realmd, oddjob, oddjob-mkhomedir, adcli, samba-common, samba-common-tools, krb5-workstation, openldap-clients, policycoreutils-python,
-            openldap-clients
-      state: present
+     name: realmd, sssd, oddjob, oddjob-mkhomedir, adcli, samba-common-tools, krb5-workstation,openldap-clients
+     state: present
+    when:   ansible_facts['distribution_version'] >= '8.0'
+  - name: install required packages for {{ansible_facts['distribution_version']}}
+    yum:
+     name: sssd, realmd, oddjob, oddjob-mkhomedir, adcli, samba-common, samba-common-tools, krb5-workstation, openldap-clients,openldap-clients
+     state: present
+    when:   ansible_facts['distribution_version'] <= '8.0'
+     #
   - name: join machine to AD 
     shell:  echo '{{bind_password }}' | realm join --user={{username}} {{AD_Domain}}
   - name: generate /etc/sssd/sssd.conf 

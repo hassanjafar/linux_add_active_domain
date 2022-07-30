@@ -2,8 +2,8 @@
 - name: create user and add it to the sudoers
   hosts: all
   vars:
-    password: ansible
-    user: ansible
+    password: tijaabo
+    user: tijaabo
   tasks: 
   - name: create user
     user: 
